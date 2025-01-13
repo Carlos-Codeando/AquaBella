@@ -1,0 +1,76 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Create icns file
+      run: |
+        mkdir icon.iconset
+        sips -z 16 16     icono.ico --out icon.iconset/icon_16x16.png
+        sips -z 32 32     icono.ico --out icon.iconset/icon_16x16@2x.png
+        sips -z 32 32     icono.ico --out icon.iconset/icon_32x32.png
+        sips -z 64 64     icono.ico --out icon.iconset/icon_32x32@2x.png
+        sips -z 128 128   icono.ico --out icon.iconset/icon_128x128.png
+        sips -z 256 256   icono.ico --out icon.iconset/icon_128x128@2x.png
+        sips -z 256 256   icono.ico --out icon.iconset/icon_256x256.png
+        sips -z 512 512   icono.ico --out icon.iconset/icon_256x256@2x.png
+        sips -z 512 512   icono.ico --out icon.iconset/icon_512x512.png
+        sips -z 1024 1024 icono.ico --out icon.iconset/icon_512x512@2x.png
+        iconutil -c icns icon.iconset
+    
+    - name: Build MacOS executable
+      run: |
+        pyinstaller --add-data "assets:assets" --icon="icon.icns" --windowed AquaBella.py
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: AquaBella-MacOS
+        path: dist/AquaBella
+
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Build Windows executable
+      run: |
+        pyinstaller --add-data "assets;assets" --icon="icono.ico" --windowed AquaBella.py
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: AquaBella-Windows
+        path: dist/AquaBella
