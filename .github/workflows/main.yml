@@ -1,4 +1,4 @@
-name: Build macOS Executable 
+name: Build macOS Executable
 
 on:
   push:
@@ -11,6 +11,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -23,8 +25,9 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
     
-    - name: Build macOS executable
+    - name: Build macOS app bundle
       run: |
+        # Crear el ejecutable con PyInstaller
         pyinstaller --name AquaBella \
           --add-data "assets:assets" \
           --add-data "asistentes.py:." \
@@ -35,39 +38,58 @@ jobs:
           --add-data "tratamientos.py:." \
           --icon="icono.icns" \
           --windowed \
+          --clean \
           AquaBella.py
         
-        cd dist
-        mkdir -p AquaBella.app/Contents/MacOS
-        mkdir -p AquaBella.app/Contents/Resources
-        mv AquaBella/* AquaBella.app/Contents/MacOS/
-        cp ../icono.icns AquaBella.app/Contents/Resources/
+        # Crear estructura de la aplicación
+        mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
         
-        echo '<?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>AquaBella</string>
-            <key>CFBundleIconFile</key>
-            <string>icono</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.aquabella.app</string>
-            <key>CFBundleName</key>
-            <string>AquaBella</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>1.0</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.13</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-        </dict>
-        </plist>' > AquaBella.app/Contents/Info.plist
+        # Mover el ejecutable y recursos
+        mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
+        cp icono.icns dist/AquaBella.app/Contents/Resources/
+        
+        # Crear Info.plist
+        cat > dist/AquaBella.app/Contents/Info.plist << 'EOL'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>AquaBella</string>
+    <key>CFBundleIconFile</key>
+    <string>icono</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.aquabella.app</string>
+    <key>CFBundleName</key>
+    <string>AquaBella</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.13</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>
+EOL
+        
+        # Dar permisos de ejecución
+        chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
     
-    - name: Upload artifact
+    - name: Create DMG
+      run: |
+        # Opcional: Crear un DMG para mejor distribución
+        hdiutil create -volname "AquaBella" -srcfolder dist/AquaBella.app -ov -format UDZO dist/AquaBella.dmg
+    
+    - name: Upload app artifact
       uses: actions/upload-artifact@v4
       with:
         name: AquaBella-macOS
         path: dist/AquaBella.app
+        
+    - name: Upload DMG artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AquaBella-DMG
+        path: dist/AquaBella.dmg
