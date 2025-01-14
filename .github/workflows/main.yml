@@ -27,7 +27,6 @@ jobs:
     
     - name: Build macOS app bundle
       run: |
-        # Crear el ejecutable con PyInstaller
         pyinstaller --name AquaBella \
           --add-data "assets:assets" \
           --add-data "asistentes.py:." \
@@ -41,45 +40,37 @@ jobs:
           --clean \
           AquaBella.py
         
-        # Crear estructura de la aplicación
         mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
-        
-        # Mover el ejecutable y recursos
         mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
         cp icono.icns dist/AquaBella.app/Contents/Resources/
         
-        # Crear Info.plist
-        cat > dist/AquaBella.app/Contents/Info.plist << 'EOL'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>AquaBella</string>
-    <key>CFBundleIconFile</key>
-    <string>icono</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.aquabella.app</string>
-    <key>CFBundleName</key>
-    <string>AquaBella</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>10.13</string>
-    <key>NSHighResolutionCapable</key>
-    <true/>
-</dict>
-</plist>
-EOL
+        echo '<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>AquaBella</string>
+            <key>CFBundleIconFile</key>
+            <string>icono</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.aquabella.app</string>
+            <key>CFBundleName</key>
+            <string>AquaBella</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.13</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </plist>' > dist/AquaBella.app/Contents/Info.plist
         
-        # Dar permisos de ejecución
         chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
     
     - name: Create DMG
       run: |
-        # Opcional: Crear un DMG para mejor distribución
         hdiutil create -volname "AquaBella" -srcfolder dist/AquaBella.app -ov -format UDZO dist/AquaBella.dmg
     
     - name: Upload app artifact
