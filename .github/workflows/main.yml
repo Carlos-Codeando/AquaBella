@@ -25,10 +25,55 @@ jobs:
     
     - name: Build macOS executable
       run: |
-        pyinstaller --add-data "assets:assets" --icon="icono.icns" --windowed AquaBella.py
+        pyinstaller --name AquaBella \
+          --add-data "assets:assets" \
+          --add-data "asistentes.py:." \
+          --add-data "control_sesiones.py:." \
+          --add-data "database.py:." \
+          --add-data "pacientes.py:." \
+          --add-data "reportes.py:." \
+          --add-data "tratamientos.py:." \
+          --icon="icono.icns" \
+          --windowed \
+          AquaBella.py
+        
+        # Crear estructura .app apropiada
+        cd dist
+        mkdir -p AquaBella.app/Contents/MacOS
+        mkdir -p AquaBella.app/Contents/Resources
+        
+        # Mover ejecutable y recursos
+        mv AquaBella/* AquaBella.app/Contents/MacOS/
+        cp ../icono.icns AquaBella.app/Contents/Resources/
+        
+        # Crear Info.plist
+        cat > AquaBella.app/Contents/Info.plist << EOL
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>AquaBella</string>
+    <key>CFBundleIconFile</key>
+    <string>icono</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.aquabella.app</string>
+    <key>CFBundleName</key>
+    <string>AquaBella</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.13</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>
+EOL
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: AquaBella-macOS
-        path: dist/AquaBella
+        path: dist/AquaBella.app
