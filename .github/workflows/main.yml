@@ -37,40 +37,34 @@ jobs:
           --windowed \
           AquaBella.py
         
-        # Crear estructura .app apropiada
         cd dist
         mkdir -p AquaBella.app/Contents/MacOS
         mkdir -p AquaBella.app/Contents/Resources
-        
-        # Mover ejecutable y recursos
         mv AquaBella/* AquaBella.app/Contents/MacOS/
         cp ../icono.icns AquaBella.app/Contents/Resources/
         
-        # Crear Info.plist
-        cat > AquaBella.app/Contents/Info.plist << EOL
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>AquaBella</string>
-    <key>CFBundleIconFile</key>
-    <string>icono</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.aquabella.app</string>
-    <key>CFBundleName</key>
-    <string>AquaBella</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>10.13</string>
-    <key>NSHighResolutionCapable</key>
-    <true/>
-</dict>
-</plist>
-EOL
+        echo '<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>AquaBella</string>
+            <key>CFBundleIconFile</key>
+            <string>icono</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.aquabella.app</string>
+            <key>CFBundleName</key>
+            <string>AquaBella</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.13</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </plist>' > AquaBella.app/Contents/Info.plist
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
