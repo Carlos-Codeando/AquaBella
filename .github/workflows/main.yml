@@ -47,37 +47,7 @@ jobs:
         mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
         mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
         cp icono.icns dist/AquaBella.app/Contents/Resources/
-        
-        # Crear Info.plist
-        echo '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>AquaBella</string>
-    <key>CFBundleIconFile</key>
-    <string>icono</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.aquabella.app</string>
-    <key>CFBundleName</key>
-    <string>AquaBella</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>10.13</string>
-    <key>NSHighResolutionCapable</key>
-    <true/>
-    <key>NSRequiresAquaSystemAppearance</key>
-    <false/>
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.medical</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-</dict>
-</plist>' > dist/AquaBella.app/Contents/Info.plist
-        
+        cp Info.plist dist/AquaBella.app/Contents/
         chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
     
     - name: Create DMG
