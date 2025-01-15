@@ -24,9 +24,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        
+    - name: Check files
+      run: |
+        echo "Listing repository contents:"
+        ls -la
+        echo "Checking for specific files:"
+        test -f icono.icns && echo "icono.icns exists" || echo "icono.icns missing"
+        test -f Info.plist && echo "Info.plist exists" || echo "Info.plist missing"
+        test -f requirements.txt && echo "requirements.txt exists" || echo "requirements.txt missing"
+        test -d assets && echo "assets directory exists" || echo "assets directory missing"
     
     - name: Build macOS app bundle
       run: |
+        echo "Starting PyInstaller build..."
         pyinstaller --name AquaBella \
           --add-data "assets:assets" \
           --add-data "asistentes.py:." \
@@ -44,6 +55,7 @@ jobs:
           --osx-bundle-identifier "com.aquabella.app" \
           AquaBella.py
         
+        echo "Creating app bundle structure..."
         mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
         mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
         cp icono.icns dist/AquaBella.app/Contents/Resources/
@@ -52,6 +64,7 @@ jobs:
     
     - name: Create DMG
       run: |
+        echo "Creating DMG..."
         mkdir -p dist/dmg
         cp -r dist/AquaBella.app dist/dmg/
         hdiutil create -volname "AquaBella" -srcfolder dist/dmg -ov -format UDZO dist/AquaBella.dmg
