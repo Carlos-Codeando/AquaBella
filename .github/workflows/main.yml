@@ -1,5 +1,4 @@
 name: Build macOS Executable
-
 on:
   push:
     branches: [ main ]
@@ -18,6 +17,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+        cache: 'pip'  # Habilita el caché de pip
     
     - name: Install dependencies
       run: |
@@ -38,49 +38,83 @@ jobs:
           --icon="icono.icns" \
           --windowed \
           --clean \
+          --onefile \
+          --target-arch universal2 \
+          --codesign-identity=- \
+          --osx-bundle-identifier "com.aquabella.app" \
           AquaBella.py
         
         mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
         mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
         cp icono.icns dist/AquaBella.app/Contents/Resources/
         
-        echo '<?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>AquaBella</string>
-            <key>CFBundleIconFile</key>
-            <string>icono</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.aquabella.app</string>
-            <key>CFBundleName</key>
-            <string>AquaBella</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>1.0</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.13</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-        </dict>
-        </plist>' > dist/AquaBella.app/Contents/Info.plist
+        # Info.plist con configuraciones mejoradas
+        cat > dist/AquaBella.app/Contents/Info.plist << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>AquaBella</string>
+    <key>CFBundleIconFile</key>
+    <string>icono</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.aquabella.app</string>
+    <key>CFBundleName</key>
+    <string>AquaBella</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.13</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.medical</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+</dict>
+</plist>
+EOF
         
         chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
     
     - name: Create DMG
       run: |
-        hdiutil create -volname "AquaBella" -srcfolder dist/AquaBella.app -ov -format UDZO dist/AquaBella.dmg
+        # Crear un directorio temporal para el DMG
+        mkdir -p dist/dmg
+        cp -r dist/AquaBella.app dist/dmg/
+        
+        # Crear un archivo .DS_Store personalizado (opcional)
+        # Aquí podrías agregar comandos para personalizar la apariencia del DMG
+        
+        # Crear el DMG
+        hdiutil create -volname "AquaBella" -srcfolder dist/dmg -ov -format UDZO dist/AquaBella.dmg
     
     - name: Upload app artifact
       uses: actions/upload-artifact@v4
       with:
         name: AquaBella-macOS
         path: dist/AquaBella.app
+        compression-level: 9
         
     - name: Upload DMG artifact
       uses: actions/upload-artifact@v4
       with:
         name: AquaBella-DMG
         path: dist/AquaBella.dmg
+        compression-level: 9
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/AquaBella.dmg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
