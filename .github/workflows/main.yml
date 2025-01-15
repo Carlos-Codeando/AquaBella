@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-        cache: 'pip'  # Habilita el caché de pip
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
@@ -48,9 +48,8 @@ jobs:
         mv dist/AquaBella/* dist/AquaBella.app/Contents/MacOS/
         cp icono.icns dist/AquaBella.app/Contents/Resources/
         
-        # Info.plist con configuraciones mejoradas
-        cat > dist/AquaBella.app/Contents/Info.plist << EOF
-<?xml version="1.0" encoding="UTF-8"?>
+        # Crear Info.plist
+        echo '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -77,21 +76,14 @@ jobs:
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
 </dict>
-</plist>
-EOF
+</plist>' > dist/AquaBella.app/Contents/Info.plist
         
         chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
     
     - name: Create DMG
       run: |
-        # Crear un directorio temporal para el DMG
         mkdir -p dist/dmg
         cp -r dist/AquaBella.app dist/dmg/
-        
-        # Crear un archivo .DS_Store personalizado (opcional)
-        # Aquí podrías agregar comandos para personalizar la apariencia del DMG
-        
-        # Crear el DMG
         hdiutil create -volname "AquaBella" -srcfolder dist/dmg -ov -format UDZO dist/AquaBella.dmg
     
     - name: Upload app artifact
@@ -107,14 +99,3 @@ EOF
         name: AquaBella-DMG
         path: dist/AquaBella.dmg
         compression-level: 9
-
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          dist/AquaBella.dmg
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
