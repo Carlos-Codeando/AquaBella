@@ -28,6 +28,7 @@ jobs:
     
     - name: Build macOS app bundle
       run: |
+        # Ejecuta PyInstaller para crear el ejecutable
         pyinstaller --name AquaBella \
           --add-data "assets:assets" \
           --add-data "asistentes.py:." \
@@ -42,17 +43,20 @@ jobs:
           --onefile \
           --osx-bundle-identifier "com.aquabella.app" \
           AquaBella.py
-
-        # Verificar si dist/AquaBella existe antes de mover archivos
-        if [[ -d dist/AquaBella ]]; then
+        
+        # Verifica que el archivo ejecutable se haya generado
+        if [[ -f dist/AquaBella ]]; then
+          # Estructura del bundle .app
           mkdir -p dist/AquaBella.app/Contents/{MacOS,Resources}
           mv dist/AquaBella dist/AquaBella.app/Contents/MacOS/AquaBella
           cp icono.icns dist/AquaBella.app/Contents/Resources/
+
+          # Genera el archivo Info.plist
           echo '<?xml version="1.0" encoding="UTF-8"?>' > dist/AquaBella.app/Contents/Info.plist
           echo '<plist version="1.0"><dict><key>CFBundleName</key><string>AquaBella</string><key>CFBundleDisplayName</key><string>AquaBella</string><key>CFBundleIdentifier</key><string>com.aquabella.app</string><key>CFBundleVersion</key><string>1.0</string><key>CFBundleExecutable</key><string>AquaBella</string><key>NSHighResolutionCapable</key><true/></dict></plist>' >> dist/AquaBella.app/Contents/Info.plist
           chmod +x dist/AquaBella.app/Contents/MacOS/AquaBella
         else
-          echo "Error: dist/AquaBella no existe. Revisa el proceso de PyInstaller."
+          echo "Error: No se generó el archivo ejecutable en 'dist/'. Revisa PyInstaller."
           exit 1
         fi
     
